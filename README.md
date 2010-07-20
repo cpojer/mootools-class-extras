@@ -8,7 +8,7 @@ Provides useful additions to Class.
 Build via [Packager](http://github.com/kamicane/packager), requires MooTools Core to be registered to Packager already
 
 	./packager register /path/to/class-extras
-	./packager build Class-Extras > mootools-class-extras.js
+	./packager build Class-Extras/* > mootools-class-extras.js
 
 ### Usage
 

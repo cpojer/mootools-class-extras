@@ -9,7 +9,7 @@ authors: Christoph Pojer (@cpojer)
 
 license: MIT-style license.
 
-requires: [Class]
+requires: [Core/Class]
 
 provides: Class.Singleton
 

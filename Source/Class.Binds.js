@@ -9,7 +9,7 @@ authors: Scott Kyle (@appden), Christoph Pojer (@cpojer)
 
 license: MIT-style license.
 
-requires: [Class, Function]
+requires: [Core/Class, Core/Function]
 
 provides: Class.Binds
 
