@@ -11,6 +11,10 @@ Build via [Packager](http://github.com/kamicane/packager), requires MooTools Cor
 	./packager register /path/to/class-extras
 	./packager build Class-Extras/* > mootools-class-extras.js
 
+To build this plugin without external dependencies use
+
+	./packager build Class-Extras/* +use-only Class-Extras > class-extras.js
+
 How To Use
 ----------
 
