@@ -24,7 +24,7 @@ provides: [Core, MooTools, Type, typeOf, instanceOf]
 
 this.MooTools = {
 	version: '1.3dev',
-	build: 'a56b5ec1e4fb2a8383c5aee0236ce437267629bc'
+	build: 'f67407be92d0594b353cb6ba53d91f66b42061e6'
 };
 
 // typeOf, instanceOf
@@ -32,7 +32,7 @@ this.MooTools = {
 var typeOf = this.typeOf = function(item){
 	if (item == null) return 'null';
 	if (item.$family) return item.$family();
-	
+
 	if (item.nodeName){
 		if (item.nodeType == 1) return 'element';
 		if (item.nodeType == 3) return (/\S/).test(item.nodeValue) ? 'textnode' : 'whitespace';
@@ -105,6 +105,8 @@ Function.prototype.implement = function(key, value){
 
 // From
 
+var slice = Array.prototype.slice;
+
 Function.from = function(item){
 	return (typeOf(item) == 'function') ? item : function(){
 		return item;
@@ -113,7 +115,7 @@ Function.from = function(item){
 
 Array.from = function(item){
 	if (item == null) return [];
-	return (Type.isEnumerable(item) && typeof item != 'string') ? (typeOf(item) == 'array') ? item : Array.prototype.slice.call(item) : [item];
+	return (Type.isEnumerable(item) && typeof item != 'string') ? (typeOf(item) == 'array') ? item : slice.call(item) : [item];
 };
 
 Number.from = function(item){
@@ -128,7 +130,7 @@ String.from = function(item){
 // hide, protect
 
 Function.implement({
-	
+
 	hide: function(){
 		this.$hidden = true;
 		return this;
@@ -138,7 +140,7 @@ Function.implement({
 		this.$protected = true;
 		return this;
 	}
-	
+
 });
 
 // Type
@@ -149,7 +151,7 @@ var Type = this.Type = function(name, object){
 		var typeCheck = function(item){
 			return (typeOf(item) == lower);
 		};
-		
+
 		Type['is' + name] = typeCheck;
 		if (object != null){
 			object.prototype.$family = (function(){
@@ -162,11 +164,11 @@ var Type = this.Type = function(name, object){
 	}
 
 	if (object == null) return null;
-	
+
 	object.extend(this);
 	object.$constructor = Type;
 	object.prototype.$constructor = object;
-	
+
 	return object;
 };
 
@@ -185,22 +187,22 @@ var hooksOf = function(object){
 
 var implement = function(name, method){
 	if (method && method.$hidden) return this;
-	
+
 	var hooks = hooksOf(this);
-	
+
 	for (var i = 0; i < hooks.length; i++){
 		var hook = hooks[i];
 		if (typeOf(hook) == 'type') implement.call(hook, name, method);
 		else hook.call(this, name, method);
 	}
-
+	
 	var previous = this.prototype[name];
 	if (previous == null || !previous.$protected) this.prototype[name] = method;
-	
+
 	if (this[name] == null && typeOf(method) == 'function') extend.call(this, name, function(item){
-		return method.apply(item, Array.prototype.slice.call(arguments, 1));
+		return method.apply(item, slice.call(arguments, 1));
 	});
-	
+
 	return this;
 };
 
@@ -212,9 +214,9 @@ var extend = function(name, method){
 };
 
 Type.implement({
-	
+
 	implement: implement.overloadSetter(),
-	
+
 	extend: extend.overloadSetter(),
 
 	alias: function(name, existing){
@@ -225,32 +227,34 @@ Type.implement({
 		hooksOf(this).push(hook);
 		return this;
 	}
-	
+
 });
 
 new Type('Type', Type);
 
 // Default Types
 
-var force = function(name, type, methods){
-	var object = new Type(name, type),
+var force = function(name, object, methods){
+	var isType = (object != Object),
 		prototype = object.prototype;
-	
+
+	if (isType) object = new Type(name, object);
+
 	for (var i = 0, l = methods.length; i < l; i++){
 		var key = methods[i],
 			generic = object[key],
 			proto = prototype[key];
-		
+
 		if (generic) generic.protect();
-		
-		if (proto){
+
+		if (isType && proto){
 			delete prototype[key];
 			prototype[key] = proto.protect();
 		}
 	}
-	
-	object.implement(object.prototype);
-	
+
+	if (isType) object.implement(prototype);
+
 	return force;
 };
 
@@ -263,8 +267,16 @@ force('String', String, [
 ])('Number', Number, [
 	'toExponential', 'toFixed', 'toLocaleString', 'toPrecision'
 ])('Function', Function, [
-	'apply', 'call'
-])('RegExp', RegExp, ['exec', 'test'])('Date', Date, ['now']);
+	'apply', 'call', 'bind'
+])('RegExp', RegExp, [
+	'exec', 'test'
+])('Object', Object, [
+	'create', 'defineProperty', 'defineProperties', 'keys',
+	'getPrototypeOf', 'getOwnPropertyDescriptor', 'getOwnPropertyNames',
+	'preventExtensions', 'isExtensible', 'seal', 'isSealed', 'freeze', 'isFrozen'
+])('Date', Date, ['now']);
+
+Object.extend = extend.overloadSetter();
 
 Date.extend('now', function(){
 	return +(new Date);
@@ -295,18 +307,18 @@ Object.extend('forEach', function(object, fn, bind){
 Object.each = Object.forEach;
 
 Array.implement({
-	
+
 	forEach: function(fn, bind){
 		for (var i = 0, l = this.length; i < l; i++){
 			if (i in this) fn.call(bind, this[i], i, this);
 		}
 	},
-	
+
 	each: function(fn, bind){
 		Array.forEach(this, fn, bind);
 		return this;
 	}
-	
+
 });
 
 // Array & Object cloning, Object merging and appending
@@ -338,7 +350,7 @@ var mergeOne = function(source, key, current){
 };
 
 Object.extend({
-	
+
 	merge: function(source, k, v){
 		if (typeOf(k) == 'string') return mergeOne(source, k, v);
 		for (var i = 1, l = arguments.length; i < l; i++){
@@ -347,13 +359,13 @@ Object.extend({
 		}
 		return source;
 	},
-	
+
 	clone: function(object){
 		var clone = {};
 		for (var key in object) clone[key] = cloneOf(object[key]);
 		return clone;
 	},
-	
+
 	append: function(original){
 		for (var i = 1, l = arguments.length; i < l; i++){
 			var extended = arguments[i] || {};
@@ -361,13 +373,21 @@ Object.extend({
 		}
 		return original;
 	}
-	
+
 });
 
 // Object-less types
 
 ['Object', 'WhiteSpace', 'TextNode', 'Collection', 'Arguments'].each(function(name){
 	new Type(name);
+});
+
+// Unique ID
+
+var UID = Date.now();
+
+String.extend('generateUID', function(){
+	return (UID++).toString(36);
 });
 
 //<1.2compat>
@@ -410,16 +430,17 @@ var Native = this.Native = function(properties){
 	return new Type(properties.name, properties.initialize);
 };
 
+Native.type = Type.type;
+
 Native.implement = function(objects, methods){
 	for (var i = 0; i < objects.length; i++) objects[i].implement(methods);
 	return Native;
 };
 
-(function(check){
-	Array.type = function(item){
-		return instanceOf(item, Array) || check(item);
-	};
-})(Array.type);
+var arrayType = Array.type;
+Array.type = function(item){
+	return instanceOf(item, Array) || arrayType(item);
+};
 
 this.$A = function(item){
 	return Array.from(item).slice();
@@ -447,14 +468,13 @@ this.$defined = function(obj){
 
 this.$each = function(iterable, fn, bind){
 	var type = typeOf(iterable);
-	((type == 'arguments' || type == 'collection' || type == 'array') ? Array : Object).each(iterable, fn, bind);
+	((type == 'arguments' || type == 'collection' || type == 'array' || type == 'elements') ? Array : Object).each(iterable, fn, bind);
 };
 
 this.$empty = function(){};
 
 this.$extend = function(original, extended){
-	for (var key in (extended || {})) original[key] = extended[key];
-	return original;
+	return Object.append(original, extended);
 };
 
 this.$H = function(object){
@@ -510,7 +530,7 @@ provides: Array
 */
 
 Array.implement({
-	
+
 	invoke: function(methodName){
 		var args = Array.slice(arguments, 1);
 		return this.map(function(item){
@@ -590,7 +610,7 @@ Array.implement({
 		this.push.apply(this, array);
 		return this;
 	},
-	
+
 	getLast: function(){
 		return (this.length) ? this[this.length - 1] : null;
 	},
@@ -630,7 +650,7 @@ Array.implement({
 		}
 		return array;
 	},
-	
+
 	pick: function(){
 		for (var i = 0, l = this.length; i < l; i++){
 			if (this[i] != null) return this[i];
@@ -789,12 +809,23 @@ Function.implement({
 	attempt: function(args, bind){
 		try {
 			return this.apply(bind, Array.from(args));
-		} catch (e){
-			return null;
-		}
+		} catch (e){}
+		
+		return null;
 	},
 
-	bind: function(bind, args){
+	bind: function(bind){
+		var self = this,
+			args = (arguments.length > 1) ? Array.slice(arguments, 1) : null;
+		
+		return function(){
+			if (!args && !arguments.length) return self.call(bind);
+			if (args && arguments.length) return self.apply(bind, args.concat(Array.from(arguments)));
+			return self.apply(bind, args || arguments);
+		};
+	},
+
+	pass: function(args, bind){
 		var self = this;
 		if (args != null) args = Array.from(args);
 		return function(){
@@ -803,24 +834,18 @@ Function.implement({
 	},
 
 	delay: function(delay, bind, args){
-		return setTimeout(this.bind(bind, args || []), delay);
-	},
-
-	pass: function(args, bind){
-		return this.bind(bind, args);
+		return setTimeout(this.pass(args, bind), delay);
 	},
 
 	periodical: function(periodical, bind, args){
-		return setInterval(this.bind(bind, args || []), periodical);
-	},
-
-	run: function(args, bind){
-		return this.apply(bind, Array.from(args));
+		return setInterval(this.pass(args, bind), periodical);
 	}
 
 });
 
 //<1.2compat>
+
+delete Function.prototype.bind;
 
 Function.implement({
 
@@ -841,12 +866,24 @@ Function.implement({
 		};
 	},
 
+	bind: function(bind, args){
+		var self = this;
+		if (args != null) args = Array.from(args);
+		return function(){
+			return self.apply(bind, args || arguments);
+		};
+	},
+
 	bindWithEvent: function(bind, args){
 		var self = this;
 		if (args != null) args = Array.from(args);
 		return function(event){
 			return self.apply(bind, (args == null) ? arguments : [event].concat(args));
 		};
+	},
+
+	run: function(args, bind){
+		return this.apply(bind, Array.from(args));
 	}
 
 });
@@ -929,9 +966,9 @@ provides: Class
 (function(){
 
 var Class = this.Class = new Type('Class', function(params){
-	
+
 	if (instanceOf(params, Function)) params = {'initialize': params};
-	
+
 	var newClass = function(){
 		reset(this);
 		if (newClass.$prototyping) return this;
@@ -942,7 +979,7 @@ var Class = this.Class = new Type('Class', function(params){
 	}.extend(this);
 
 	newClass.implement(params);
-	
+
 	newClass.$constructor = Class;
 	newClass.prototype.$constructor = newClass;
 	newClass.prototype.parent = parent;
@@ -989,21 +1026,21 @@ var wrap = function(self, key, method){
 };
 
 var implement = function(key, value, retain){
-	
+
 	if (Class.Mutators.hasOwnProperty(key)){
 		value = Class.Mutators[key].call(this, value);
 		if (value == null) return this;
 	}
-	
+
 	if (typeOf(value) == 'function'){
 		if (value.$hidden) return this;
 		this.prototype[key] = (retain) ? value : wrap(this, key, value);
 	} else {
 		Object.merge(this.prototype, key, value);
 	}
-	
+
 	return this;
-	
+
 };
 
 var getInstance = function(klass){
@@ -1016,12 +1053,12 @@ var getInstance = function(klass){
 Class.implement('implement', implement.overloadSetter());
 
 Class.Mutators = {
-	
+
 	Extends: function(parent){
 		this.parent = parent;
 		this.prototype = getInstance(parent);
 	},
-	
+
 	Implements: function(items){
 		Array.from(items).each(function(item){
 			var instance = new item;
@@ -1029,6 +1066,134 @@ Class.Mutators = {
 		}, this);
 	}
 };
+
+})();
+
+
+/*
+---
+
+name: Class.Extras
+
+description: Contains Utility Classes that can be implemented into your own Classes to ease the execution of many common tasks.
+
+license: MIT-style license.
+
+requires: Class
+
+provides: [Class.Extras, Chain, Events, Options]
+
+...
+*/
+
+(function(){
+
+this.Chain = new Class({
+
+	$chain: [],
+
+	chain: function(){
+		this.$chain.append(Array.flatten(arguments));
+		return this;
+	},
+
+	callChain: function(){
+		return (this.$chain.length) ? this.$chain.shift().apply(this, arguments) : false;
+	},
+
+	clearChain: function(){
+		this.$chain.empty();
+		return this;
+	}
+
+});
+
+var removeOn = function(string){
+	return string.replace(/^on([A-Z])/, function(full, first){
+		return first.toLowerCase();
+	});
+};
+
+var triggerEvent = function(type, args, delay){
+	type = removeOn(type);
+	var events = this.$events[type];
+	if (!events) return this;
+	args = Array.from(args);
+	events.each(function(fn){
+		if (delay) fn.delay(delay, this, args);
+		else fn.apply(this, args);
+	}, this);
+	return this;
+};
+
+this.Events = new Class({
+
+	$events: {},
+
+	addEvent: function(type, fn, internal){
+		type = removeOn(type);
+
+		/*<1.2compat>*/
+		if (fn == $empty) return this;
+		/*</1.2compat>*/
+
+		this.$events[type] = (this.$events[type] || []).include(fn);
+		if (internal) fn.internal = true;
+		return this;
+	},
+
+	addEvents: function(events){
+		for (var type in events) this.addEvent(type, events[type]);
+		return this;
+	},
+
+	triggerEvent: triggerEvent,
+	
+	removeEvent: function(type, fn){
+		type = removeOn(type);
+		var events = this.$events[type];
+		if (events && !fn.internal){
+			var index =  events.indexOf(fn);
+			if (index != -1) delete events[index];
+		}
+		return this;
+	},
+
+	removeEvents: function(events){
+		var type;
+		if (typeOf(events) == 'object'){
+			for (type in events) this.removeEvent(type, events[type]);
+			return this;
+		}
+		if (events) events = removeOn(events);
+		for (type in this.$events){
+			if (events && events != type) continue;
+			var fns = this.$events[type];
+			for (var i = fns.length; i--;) this.removeEvent(type, fns[i]);
+		}
+		return this;
+	}
+
+});
+
+/*<1.2compat>*/
+Events.implement({fireEvent: triggerEvent});
+/*</1.2compat>*/
+
+this.Options = new Class({
+
+	setOptions: function(){
+		var options = this.options = Object.merge.apply(null, [{}, this.options].append(arguments));
+		if (!this.addEvent) return this;
+		for (var option in options){
+			if (typeOf(options[option]) != 'function' || !(/^on[A-Z]/).test(option)) continue;
+			this.addEvent(option, options[option]);
+			delete options[option];
+		}
+		return this;
+	}
+
+});
 
 })();
 
