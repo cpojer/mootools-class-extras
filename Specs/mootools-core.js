@@ -15,7 +15,7 @@ inspiration:
   - Class implementation inspired by [Base.js](http://dean.edwards.name/weblog/2006/03/base/) Copyright (c) 2006 Dean Edwards, [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
   - Some functionality inspired by [Prototype.js](http://prototypejs.org) Copyright (c) 2005-2007 Sam Stephenson, [MIT License](http://opensource.org/licenses/mit-license.php)
 
-provides: [Core, MooTools, Type, typeOf, instanceOf]
+provides: [Core, MooTools, Type, typeOf, instanceOf, Native]
 
 ...
 */
@@ -24,7 +24,7 @@ provides: [Core, MooTools, Type, typeOf, instanceOf]
 
 this.MooTools = {
 	version: '1.3dev',
-	build: 'f67407be92d0594b353cb6ba53d91f66b42061e6'
+	build: '17bdb44dd8dec1ec4d52d567ea5e75ecd78e9a3d'
 };
 
 // typeOf, instanceOf
@@ -157,9 +157,7 @@ var Type = this.Type = function(name, object){
 			object.prototype.$family = (function(){
 				return lower;
 			}).hide();
-			//<1.2compat>
-			object.type = typeCheck;
-			//</1.2compat>
+			
 		}
 	}
 
@@ -386,129 +384,11 @@ Object.extend({
 
 var UID = Date.now();
 
-String.extend('generateUID', function(){
+String.extend('uniqueID', function(){
 	return (UID++).toString(36);
 });
 
-//<1.2compat>
 
-var Hash = this.Hash = new Type('Hash', function(object){
-	if (typeOf(object) == 'hash') object = Object.clone(object.getClean());
-	for (var key in object) this[key] = object[key];
-	return this;
-});
-
-Hash.implement({
-
-	forEach: function(fn, bind){
-		Object.forEach(this, fn, bind);
-	},
-
-	getClean: function(){
-		var clean = {};
-		for (var key in this){
-			if (this.hasOwnProperty(key)) clean[key] = this[key];
-		}
-		return clean;
-	},
-
-	getLength: function(){
-		var length = 0;
-		for (var key in this){
-			if (this.hasOwnProperty(key)) length++;
-		}
-		return length;
-	}
-
-});
-
-Hash.alias('each', 'forEach');
-
-Object.type = Type.isObject;
-
-var Native = this.Native = function(properties){
-	return new Type(properties.name, properties.initialize);
-};
-
-Native.type = Type.type;
-
-Native.implement = function(objects, methods){
-	for (var i = 0; i < objects.length; i++) objects[i].implement(methods);
-	return Native;
-};
-
-var arrayType = Array.type;
-Array.type = function(item){
-	return instanceOf(item, Array) || arrayType(item);
-};
-
-this.$A = function(item){
-	return Array.from(item).slice();
-};
-
-this.$arguments = function(i){
-	return function(){
-		return arguments[i];
-	};
-};
-
-this.$chk = function(obj){
-	return !!(obj || obj === 0);
-};
-
-this.$clear = function(timer){
-	clearTimeout(timer);
-	clearInterval(timer);
-	return null;
-};
-
-this.$defined = function(obj){
-	return (obj != null);
-};
-
-this.$each = function(iterable, fn, bind){
-	var type = typeOf(iterable);
-	((type == 'arguments' || type == 'collection' || type == 'array' || type == 'elements') ? Array : Object).each(iterable, fn, bind);
-};
-
-this.$empty = function(){};
-
-this.$extend = function(original, extended){
-	return Object.append(original, extended);
-};
-
-this.$H = function(object){
-	return new Hash(object);
-};
-
-this.$merge = function(){
-	var args = Array.slice(arguments);
-	args.unshift({});
-	return Object.merge.apply(null, args);
-};
-
-this.$lambda = Function.from;
-this.$mixin = Object.merge;
-this.$random = Number.random;
-this.$splat = Array.from;
-this.$time = Date.now;
-
-this.$type = function(object){
-	var type = typeOf(object);
-	if (type == 'elements') return 'array';
-	return (type == 'null') ? false : type;
-};
-
-this.$unlink = function(object){
-	switch (typeOf(object)){
-		case 'object': return Object.clone(object);
-		case 'array': return Array.clone(object);
-		case 'hash': return new Hash(object);
-		default: return object;
-	}
-};
-
-//</1.2compat>
 
 })();
 
@@ -680,15 +560,7 @@ Array.implement({
 
 });
 
-//<1.2compat>
 
-Array.alias('extend', 'append');
-
-var $pick = function(){
-	return Array.from(arguments).pick();
-};
-
-//</1.2compat>
 
 
 /*
@@ -768,7 +640,7 @@ String.implement({
 	substitute: function(object, regexp){
 		return this.replace(regexp || (/\\?\{([^{}]+)\}/g), function(match, name){
 			if (match.charAt(0) == '\\') return match.slice(1);
-			return (object[name] != undefined) ? object[name] : '';
+			return (object[name] != null) ? object[name] : '';
 		});
 	}
 
@@ -843,54 +715,7 @@ Function.implement({
 
 });
 
-//<1.2compat>
 
-delete Function.prototype.bind;
-
-Function.implement({
-
-	create: function(options){
-		var self = this;
-		options = options || {};
-		return function(event){
-			var args = options.arguments;
-			args = (args != undefined) ? Array.from(args) : Array.slice(arguments, (options.event) ? 1 : 0);
-			if (options.event) args = [event || window.event].extend(args);
-			var returns = function(){
-				return self.apply(options.bind || null, args);
-			};
-			if (options.delay) return setTimeout(returns, options.delay);
-			if (options.periodical) return setInterval(returns, options.periodical);
-			if (options.attempt) return Function.attempt(returns);
-			return returns();
-		};
-	},
-
-	bind: function(bind, args){
-		var self = this;
-		if (args != null) args = Array.from(args);
-		return function(){
-			return self.apply(bind, args || arguments);
-		};
-	},
-
-	bindWithEvent: function(bind, args){
-		var self = this;
-		if (args != null) args = Array.from(args);
-		return function(event){
-			return self.apply(bind, (args == null) ? arguments : [event].concat(args));
-		};
-	},
-
-	run: function(args, bind){
-		return this.apply(bind, Array.from(args));
-	}
-
-});
-
-var $try = Function.attempt;
-
-//</1.2compat>
 
 
 /*
@@ -966,8 +791,7 @@ provides: Class
 (function(){
 
 var Class = this.Class = new Type('Class', function(params){
-
-	if (instanceOf(params, Function)) params = {'initialize': params};
+	if (instanceOf(params, Function)) params = {initialize: params};
 
 	var newClass = function(){
 		reset(this);
@@ -976,22 +800,20 @@ var Class = this.Class = new Type('Class', function(params){
 		var value = (this.initialize) ? this.initialize.apply(this, arguments) : this;
 		this.$caller = this.caller = null;
 		return value;
-	}.extend(this);
-
-	newClass.implement(params);
+	}.extend(this).implement(params);
 
 	newClass.$constructor = Class;
 	newClass.prototype.$constructor = newClass;
 	newClass.prototype.parent = parent;
 
 	return newClass;
-
 });
 
 var parent = function(){
 	if (!this.$caller) throw new Error('The method "parent" cannot be called.');
-	var name = this.$caller.$name, parent = this.$caller.$owner.parent;
-	var previous = (parent) ? parent.prototype[name] : null;
+	var name = this.$caller.$name,
+		parent = this.$caller.$owner.parent,
+		previous = (parent) ? parent.prototype[name] : null;
 	if (!previous) throw new Error('The method "' + name + '" has no parent.');
 	return previous.apply(this, arguments);
 };
@@ -1003,8 +825,7 @@ var reset = function(object){
 			case 'object':
 				var F = function(){};
 				F.prototype = value;
-				var instance = new F;
-				object[key] = reset(instance);
+				object[key] = reset(new F);
 			break;
 			case 'array': object[key] = value.clone(); break;
 		}
@@ -1026,7 +847,6 @@ var wrap = function(self, key, method){
 };
 
 var implement = function(key, value, retain){
-
 	if (Class.Mutators.hasOwnProperty(key)){
 		value = Class.Mutators[key].call(this, value);
 		if (value == null) return this;
@@ -1040,7 +860,6 @@ var implement = function(key, value, retain){
 	}
 
 	return this;
-
 };
 
 var getInstance = function(klass){
@@ -1066,134 +885,6 @@ Class.Mutators = {
 		}, this);
 	}
 };
-
-})();
-
-
-/*
----
-
-name: Class.Extras
-
-description: Contains Utility Classes that can be implemented into your own Classes to ease the execution of many common tasks.
-
-license: MIT-style license.
-
-requires: Class
-
-provides: [Class.Extras, Chain, Events, Options]
-
-...
-*/
-
-(function(){
-
-this.Chain = new Class({
-
-	$chain: [],
-
-	chain: function(){
-		this.$chain.append(Array.flatten(arguments));
-		return this;
-	},
-
-	callChain: function(){
-		return (this.$chain.length) ? this.$chain.shift().apply(this, arguments) : false;
-	},
-
-	clearChain: function(){
-		this.$chain.empty();
-		return this;
-	}
-
-});
-
-var removeOn = function(string){
-	return string.replace(/^on([A-Z])/, function(full, first){
-		return first.toLowerCase();
-	});
-};
-
-var triggerEvent = function(type, args, delay){
-	type = removeOn(type);
-	var events = this.$events[type];
-	if (!events) return this;
-	args = Array.from(args);
-	events.each(function(fn){
-		if (delay) fn.delay(delay, this, args);
-		else fn.apply(this, args);
-	}, this);
-	return this;
-};
-
-this.Events = new Class({
-
-	$events: {},
-
-	addEvent: function(type, fn, internal){
-		type = removeOn(type);
-
-		/*<1.2compat>*/
-		if (fn == $empty) return this;
-		/*</1.2compat>*/
-
-		this.$events[type] = (this.$events[type] || []).include(fn);
-		if (internal) fn.internal = true;
-		return this;
-	},
-
-	addEvents: function(events){
-		for (var type in events) this.addEvent(type, events[type]);
-		return this;
-	},
-
-	triggerEvent: triggerEvent,
-	
-	removeEvent: function(type, fn){
-		type = removeOn(type);
-		var events = this.$events[type];
-		if (events && !fn.internal){
-			var index =  events.indexOf(fn);
-			if (index != -1) delete events[index];
-		}
-		return this;
-	},
-
-	removeEvents: function(events){
-		var type;
-		if (typeOf(events) == 'object'){
-			for (type in events) this.removeEvent(type, events[type]);
-			return this;
-		}
-		if (events) events = removeOn(events);
-		for (type in this.$events){
-			if (events && events != type) continue;
-			var fns = this.$events[type];
-			for (var i = fns.length; i--;) this.removeEvent(type, fns[i]);
-		}
-		return this;
-	}
-
-});
-
-/*<1.2compat>*/
-Events.implement({fireEvent: triggerEvent});
-/*</1.2compat>*/
-
-this.Options = new Class({
-
-	setOptions: function(){
-		var options = this.options = Object.merge.apply(null, [{}, this.options].append(arguments));
-		if (!this.addEvent) return this;
-		for (var option in options){
-			if (typeOf(options[option]) != 'function' || !(/^on[A-Z]/).test(option)) continue;
-			this.addEvent(option, options[option]);
-			delete options[option];
-		}
-		return this;
-	}
-
-});
 
 })();
 

@@ -33,7 +33,7 @@ var storage = {
 };
 
 Class.Singleton = function(){
-	this.$className = String.generateUID();
+	this.$className = String.uniqueID();
 };
 
 Class.Singleton.prototype.check = function(item){
