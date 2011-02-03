@@ -3,17 +3,22 @@ Class Extras
 
 Provides useful additions to Class.
 
+This Plugin is part of MooTools [PowerTools!](http://cpojer.net/PowerTools).
+
+* [Build PowerTools!](http://cpojer.net/PowerTools)
+* [Fork PowerTools!](https://github.com/cpojer/PowerTools)
+
 Build
 -----
 
 Build via [Packager](http://github.com/kamicane/packager), requires MooTools Core to be registered to Packager already
 
-	./packager register /path/to/class-extras
-	./packager build Class-Extras/* > mootools-class-extras.js
+	packager register /path/to/class-extras
+	packager build Class-Extras/* > mootools-class-extras.js
 
 To build this plugin without external dependencies use
 
-	./packager build Class-Extras/* +use-only Class-Extras > class-extras.js
+	packager build Class-Extras/* +use-only Class-Extras > class-extras.js
 
 How To Use
 ----------
