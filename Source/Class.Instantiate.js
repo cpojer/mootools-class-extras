@@ -3,7 +3,7 @@
 
 name: Class.Instantiate
 
-description: Simple Wrapper for Mass-Class-Instantation
+description: Simple Wrapper for Mass-Class-Instantiation
 
 authors: Christoph Pojer (@cpojer)
 

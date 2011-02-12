@@ -3,7 +3,7 @@
 
 name: Class.Binds
 
-description: Alternate Class.Binds Implementation
+description: A clean Class.Binds Implementation
 
 authors: Scott Kyle (@appden), Christoph Pojer (@cpojer)
 
