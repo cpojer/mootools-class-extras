@@ -18,6 +18,7 @@ provides: Class.Instantiate
 
 Class.Instantiate = function(klass, options){
 	var create = function(object){
+		if (object.getInstanceOf && object.getInstanceOf(klass)) return;
 		new klass(object, options);
 	};
 	
