@@ -3,6 +3,8 @@ Class Extras
 
 Provides useful additions to Class.
 
+![Screenshot](http://cpojer.net/Logo/class-extras.png)
+
 This Plugin is part of MooTools [PowerTools!](http://cpojer.net/PowerTools).
 
 * [Build PowerTools!](http://cpojer.net/PowerTools)

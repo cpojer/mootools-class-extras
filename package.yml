@@ -12,6 +12,8 @@ copyright: "&copy; [Christoph Pojer](http://cpojer.net/)"
 
 author: "cpojer"
 authors: "[Christoph Pojer](http://cpojer.net)"
+category: Utilities
+tags: [class, singleton, instantiation, class.binds, binds]
 
 sources:
     - "Source/Class.Binds.js"
