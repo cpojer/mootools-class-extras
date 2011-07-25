@@ -21,7 +21,7 @@ Class.Instantiate = function(klass, options){
 		if (object.getInstanceOf && object.getInstanceOf(klass)) return;
 		new klass(object, options);
 	};
-	
+
 	return function(objects){
 		objects.each(create);
 	};

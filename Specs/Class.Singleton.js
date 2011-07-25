@@ -1,5 +1,5 @@
 describe('Class.Singleton', function(){
-	
+
 	it('should only allow a single instance', function(){
 		var Singleton = new Class({
 
@@ -22,7 +22,7 @@ describe('Class.Singleton', function(){
 		expect((new Singleton).value).toBe(single.value);
 		expect(Class.getInstanceOf(Singleton)).toBe(single);
 	});
-	
+
 	it('should create one instance per object', function(){
 		var SinglePer = new Class({
 
@@ -55,9 +55,9 @@ describe('Class.Singleton', function(){
 
 		var single1 = new SinglePer(obj1),
 			single2 = new SinglePer(obj2);
-		
+
 		expect(single1).toBe(new SinglePer(obj1));
 		expect(single1).not.toBe(single2);
 	});
-	
+
 });

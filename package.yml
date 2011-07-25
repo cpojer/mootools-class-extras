@@ -19,3 +19,4 @@ sources:
     - "Source/Class.Binds.js"
     - "Source/Class.Instantiate.js"
     - "Source/Class.Singleton.js"
+    - "Source/Class.Properties.js"

@@ -41,7 +41,7 @@ Class.Singleton.prototype.check = function(item){
 
 	var instance = item.retrieve('single:' + this.$className);
 	if (!instance) item.store('single:' + this.$className, this);
-	
+
 	return instance;
 };
 
@@ -57,4 +57,4 @@ if (('Element' in this) && Element.implement) Element.implement({getInstanceOf: 
 
 Class.getInstanceOf = gIO.bind(storage);
 
-}).call(this);
+})();
