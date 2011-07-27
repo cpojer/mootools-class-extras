@@ -27,7 +27,7 @@ describe('Class.Properties', function(){
 		var italian = new Human;
 		expect(italian.getName()).toEqual('Mario');
 		expect(italian.say()).toEqual("It's a me, Mario!");
-		italian.setName('Valerio')
+		italian.setName('Valerio');
 		expect(italian.getName()).toEqual('Valerio');
 		expect(italian.say()).toEqual("It's a me, Valerio!");
 
@@ -40,7 +40,7 @@ describe('Class.Properties', function(){
 
 		var austrian = new Human;
 		expect(austrian.getName()).toEqual('Mario');
-		austrian.setName('Christoph')
+		austrian.setName('Christoph');
 		expect(austrian.say()).toEqual("It's a me, Christoph!");
 		expect(austrian.getName()).toEqual('Christoph');
 		expect(italian.getName()).toEqual('Valerio');
@@ -52,10 +52,6 @@ describe('Class.Properties', function(){
 			Properties: {
 				name: 'Max',
 				age: 15
-			},
-
-			say: function(){
-				return "It's a me, " + this.getName();
 			}
 
 		});
@@ -71,10 +67,53 @@ describe('Class.Properties', function(){
 
 		var italian = new Italian;
 		expect(italian.getName()).toEqual('Mario');
-		italian.setName('Valerio')
+		italian.setName('Valerio');
 		expect(italian.getName()).toEqual('Valerio');
 
 		expect(italian.getAge()).toEqual(15);
-	})
+	});
+
+	it('should be able to access properties by their name', function(){
+		var Human = new Class({
+
+			Properties: {
+				name: 'Mario',
+				age: 22
+			},
+
+			say: function(){
+				return "It's a me, " + this.name + '!';
+			}
+
+		});
+
+		var italian = new Human;
+		expect(italian.getName()).toEqual('Mario');
+		expect(italian.say()).toEqual("It's a me, Mario!");
+
+		italian.setName('Valerio');
+		expect(italian.say()).toEqual("It's a me, Valerio!");
+	});
+
+	it('should allow for custom getters and setters', function(){
+		var Human = new Class({
+
+			Properties: {
+				name: 'A girl',
+				age: 22
+			},
+
+			setAge: function(age){
+				this.age = age + 5;
+			}
+
+		});
+
+		var girl = new Human;
+		// Well that is just not true!
+		girl.setAge(23);
+		// But that is.
+		expect(girl.getAge()).toEqual(28);
+	});
 
 });
