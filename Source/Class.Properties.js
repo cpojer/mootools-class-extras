@@ -35,7 +35,7 @@ Class.Mutators.Properties = function(properties){
 	this.implement(properties);
 
 	for (var prop in properties){
-		var name = prop.capitalize().camelCase();
+		var name = prop.replace(/^_+/, '').capitalize().camelCase();
 		this.implement('set' + name, setter(prop));
 		this.implement('get' + name, getter(prop));
 	}

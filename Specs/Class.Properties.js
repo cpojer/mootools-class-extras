@@ -116,4 +116,28 @@ describe('Class.Properties', function(){
 		expect(girl.getAge()).toEqual(28);
 	});
 
+	it('should strip leading underscores', function(){
+		var Human = new Class({
+
+			Properties: {
+				_name: 'Mario',
+				__age: 15
+			},
+
+			say: function(){
+				return "It's a me, " + this._name + '!';
+			}
+
+		});
+
+		var italian = new Human;
+		expect(italian.getName()).toEqual('Mario');
+		expect(italian.say()).toEqual("It's a me, Mario!");
+
+		italian.setName('Valerio');
+		expect(italian.getName()).toEqual('Valerio');
+		expect(italian.say()).toEqual("It's a me, Valerio!");
+		expect(italian.getAge()).toEqual(15);
+	});
+
 });
