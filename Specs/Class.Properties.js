@@ -140,4 +140,24 @@ describe('Class.Properties', function(){
 		expect(italian.getAge()).toEqual(15);
 	});
 
+	it('should return proper false values', function() {
+		var Human = new Class({
+
+			Properties: {
+				name: 'Mario',
+				lastName: '',
+				age: 0,
+				gender: undefined,
+				bool: false
+			}
+
+		});
+
+		var italian = new Human;
+		expect(italian.getLastName()).toEqual('');
+		expect(italian.getAge()).toEqual(0);
+		expect(italian.getGender()).toEqual(null);
+		expect(italian.getBool()).toEqual(false);
+	});
+
 });
