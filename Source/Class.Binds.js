@@ -16,6 +16,9 @@ provides: Class.Binds
 ...
 */
 
+var Core = require('Core');
+var Class = Core.Class;
+
 Class.Binds = new Class({
 
 	$bound: {},

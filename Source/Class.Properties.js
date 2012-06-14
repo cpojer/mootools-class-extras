@@ -16,7 +16,8 @@ provides: Class.Properties
 ...
 */
 
-(function(){
+var Core = require('Core');
+var Class = Core.Class;
 
 var setter = function(name){
 	return function(value){
@@ -40,5 +41,3 @@ Class.Mutators.Properties = function(properties){
 		this.implement('get' + name, getter(prop));
 	}
 };
-
-})();

@@ -16,7 +16,9 @@ provides: Class.Singleton
 ...
 */
 
-(function(){
+var Core = require('Core');
+var Class = Core.Class;
+var Element = Core.Element;
 
 var storage = {
 
@@ -53,8 +55,6 @@ var gIO = function(klass){
 
 };
 
-if (('Element' in this) && Element.implement) Element.implement({getInstanceOf: gIO});
+if (Element && Element.implement) Element.implement({getInstanceOf: gIO});
 
 Class.getInstanceOf = gIO.bind(storage);
-
-})();

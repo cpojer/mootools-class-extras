@@ -16,6 +16,9 @@ provides: Class.Instantiate
 ...
 */
 
+var Core = require('Core');
+var Class = Core.Class;
+
 Class.Instantiate = function(klass, options){
 	var create = function(object){
 		if (object.getInstanceOf && object.getInstanceOf(klass)) return;
